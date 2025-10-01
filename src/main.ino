@@ -3,18 +3,18 @@
 #include <WebServer.h>
 
 // Substitua com as suas credenciais da rede Wi-Fi
-const char* ssid = "iPhonee";
-const char* password = "vai12345";
+const char* ssid = "Nome_da_Rede";
+const char* password = "Senha_da_Rede";
 
-// O pino 2 é agora o pino para todas as funções do LED.
+// O pino 2 e agora o pino para todas as funcoes do LED.
 #define LED_PIN 2
 
-// Cria a instância do servidor web na porta 80
+// Cria a instancia do servidor web na porta 80
 WebServer server(80);
 
 // ==============================
-// Estrutura da ÁRVORE BINÁRIA (ABB) e LISTA ENCADEADA
-// (Mantidas do seu código original)
+// Estrutura da ARVORE BINARIA (ABB) e LISTA ENCADEADA
+// (Mantidas do seu codigo original)
 // ==============================
 struct EventoNode {
     int id;
@@ -43,7 +43,6 @@ private:
     int proximoId;
     int totalLatinhas;
     
-    // A implementação da função agora está aqui!
     EventoNode* inserirRec(EventoNode* node, int id, int total) {
         if (node == nullptr) {
             return new EventoNode(id, total);
@@ -118,12 +117,12 @@ public:
 
 HistoricoDepositos historico;
 
-// Variável para controlar o estado do LED sem usar delay()
+// Variavel para controlar o estado do LED sem usar delay()
 unsigned long ledTime = 0;
 bool ledState = false;
 
 // ==============================
-// Funções de manipulação do servidor (handlers)
+// Funcoes de manipulacao do servidor (handlers)
 // ==============================
 void handleRoot() {
   String html = R"rawliteral(
@@ -153,14 +152,14 @@ void handleRoot() {
 </head>
 <body>
   <div class="container">
-    <h1>Controle do Protótipo AluminiTech</h1>
+    <h1>Controle do Prototipo AluminiTech</h1>
     <div class="info-box">
       <p class="status">Status: Conectado</p>
-      <p class="status">Endereço IP: )rawliteral" + WiFi.localIP().toString() + R"rawliteral(</p>
+      <p class="status">Endereco IP: )rawliteral" + WiFi.localIP().toString() + R"rawliteral(</p>
       <p class="status">Total de latinhas: )rawliteral" + String(historico.getTotalLatinhas()) + R"rawliteral(</p>
     </div>
     <a href="/detectar">Simular Deposito de Latinha</a>
-    <a href="/historico">Ver Histórico</a>
+    <a href="/historico">Ver Historico</a>
   </div>
 </body>
 </html>
@@ -170,8 +169,17 @@ void handleRoot() {
 
 void handleDetect() {
     historico.registrarDeposito();
-    ledState = true;
-    ledTime = millis();
+    
+    // Liga o LED imediatamente após o registro
+    digitalWrite(LED_PIN, HIGH);
+    
+    // Da um pequeno delay para o LED ser visivel
+    delay(200); 
+    
+    // Desliga o LED
+    digitalWrite(LED_PIN, LOW);
+
+    // Agora, redireciona a pagina
     server.sendHeader("Location", "/");
     server.send(302, "text/plain", "");
 }
@@ -225,7 +233,8 @@ void setup() {
     
     pinMode(LED_PIN, OUTPUT);
 
-    // Sinal de início
+    // Sinal de inicio: duas piscadas rapidas
+    Serial.println("Sinalizando inicio...");
     digitalWrite(LED_PIN, HIGH);
     delay(100);
     digitalWrite(LED_PIN, LOW);
@@ -235,7 +244,7 @@ void setup() {
     digitalWrite(LED_PIN, LOW);
     delay(100);
 
-    // Conexão WiFi
+    // Conexao WiFi
     WiFi.begin(ssid, password);
     int tentativas = 0;
     while (WiFi.status() != WL_CONNECTED && tentativas < 15) {
@@ -245,13 +254,16 @@ void setup() {
     }
 
     if (WiFi.status() == WL_CONNECTED) {
+        // Sinal de conexao: dez piscadas rapidas
+        Serial.println("\nWiFi Conectado!");
+        Serial.println("Sinalizando conexao...");
         for (int i = 0; i < 10; i++) {
             digitalWrite(LED_PIN, HIGH);
             delay(100);
             digitalWrite(LED_PIN, LOW);
             delay(100);
         }
-        Serial.println("\nWiFi Conectado!");
+
         Serial.print("IP: ");
         Serial.println(WiFi.localIP());
     } else {
@@ -272,7 +284,7 @@ void setup() {
 void loop() {
     server.handleClient();
     
-    // Lógica para piscar o LED de forma não-bloqueante
+    // Logica para piscar o LED de forma nao-bloqueante
     if (ledState && (millis() - ledTime > 500)) {
         digitalWrite(LED_PIN, LOW);
         ledState = false;
